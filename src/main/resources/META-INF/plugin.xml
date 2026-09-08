@@ -1,0 +1,200 @@
+<idea-plugin>
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.vcs</depends>
+    <depends optional="true" config-file="review-relay-git.xml">Git4Idea</depends>
+
+    <extensionPoints>
+        <extensionPoint name="agentBackend"
+                        interface="com.github.gillesbergerp.reviewrelay.backend.AgentBackendFactory"
+                        dynamic="true"/>
+    </extensionPoints>
+
+    <!-- Offered in this order, and the first is what a project falls back to. -->
+    <extensions defaultExtensionNs="com.github.gillesbergerp.reviewrelay">
+        <agentBackend implementation="com.github.gillesbergerp.reviewrelay.backend.opencode.OpenCodeBackendFactory"/>
+        <agentBackend implementation="com.github.gillesbergerp.reviewrelay.backend.claude.ClaudeCodeBackendFactory"/>
+        <agentBackend implementation="com.github.gillesbergerp.reviewrelay.backend.mcp.McpBackendFactory"/>
+    </extensions>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- Without this the content manager refuses every close, so a tab shows no x and the
+             platform's own close gestures do nothing. -->
+        <toolWindow id="Review Relay"
+                    anchor="bottom"
+                    canCloseContents="true"
+                    factoryClass="com.github.gillesbergerp.reviewrelay.ui.toolwindow.ReviewToolWindowFactory"
+                    icon="AllIcons.Actions.Annotate"/>
+
+        <notificationGroup id="ReviewRelay"
+                           displayType="BALLOON"
+                           toolWindowId="Review Relay"/>
+
+        <applicationConfigurable parentId="tools"
+                                 id="com.github.gillesbergerp.reviewrelay.settings"
+                                 displayName="Review Relay"
+                                 instance="com.github.gillesbergerp.reviewrelay.ui.settings.ReviewRelayConfigurable"/>
+
+        <diff.DiffExtension implementation="com.github.gillesbergerp.reviewrelay.ui.editor.ReviewDiffExtension"/>
+
+        <httpRequestHandler implementation="com.github.gillesbergerp.reviewrelay.backend.mcp.McpEndpoint"/>
+
+        <postStartupActivity implementation="com.github.gillesbergerp.reviewrelay.ui.editor.ReviewEditorListenerStartup"/>
+        <postStartupActivity implementation="com.github.gillesbergerp.reviewrelay.ui.decoration.ChangesTreeDecoratorInstaller"/>
+    </extensions>
+
+    <actions>
+        <action id="ReviewRelay.SendReview"
+                class="com.github.gillesbergerp.reviewrelay.ui.actions.SendReviewAction"
+                text="Send Review"
+                description="Send every unsent comment to the agent"
+                icon="AllIcons.Vcs.Push"/>
+
+        <action id="ReviewRelay.AbortAgent"
+                class="com.github.gillesbergerp.reviewrelay.ui.actions.AbortAgentAction"
+                text="Stop the Agent"
+                description="Abort the turn the agent is running"
+                icon="AllIcons.Actions.Suspend"/>
+
+        <action id="ReviewRelay.NextComment"
+                class="com.github.gillesbergerp.reviewrelay.ui.actions.NextCommentAction"
+                text="Next Review Comment"
+                description="Select the next review comment and open the code it is about"
+                icon="AllIcons.Actions.NextOccurence">
+            <keyboard-shortcut keymap="$default" first-keystroke="ctrl shift alt PERIOD"/>
+        </action>
+
+        <action id="ReviewRelay.PreviousComment"
+                class="com.github.gillesbergerp.reviewrelay.ui.actions.PreviousCommentAction"
+                text="Previous Review Comment"
+                description="Select the previous review comment and open the code it is about"
+                icon="AllIcons.Actions.PreviousOccurence">
+            <keyboard-shortcut keymap="$default" first-keystroke="ctrl shift alt COMMA"/>
+        </action>
+
+        <action id="ReviewRelay.NewSession"
+                class="com.github.gillesbergerp.reviewrelay.ui.actions.NewSessionAction"
+                text="New Session Here"
+                description="Create an agent session rooted in this project directory"
+                icon="AllIcons.General.Add"/>
+
+        <action id="ReviewRelay.RenameReview"
+                class="com.github.gillesbergerp.reviewrelay.ui.actions.RenameReviewAction"
+                text="Rename Review...">
+            <add-to-group group-id="ToolWindowContextMenu" anchor="first"/>
+        </action>
+
+        <action id="ReviewRelay.DeleteReview"
+                class="com.github.gillesbergerp.reviewrelay.ui.actions.DeleteReviewAction"
+                text="Delete Review...">
+            <add-to-group group-id="ToolWindowContextMenu" anchor="after"
+                          relative-to-action="ReviewRelay.RenameReview"/>
+        </action>
+
+        <action id="ReviewRelay.LocalChanges"
+                class="com.github.gillesbergerp.reviewrelay.ui.actions.LocalChangesAction"
+                text="Review Local Changes"
+                description="Show uncommitted work instead of the selected commits"
+                icon="AllIcons.Actions.Diff"/>
+
+        <group id="ReviewRelay.ThreadFilter"
+               class="com.github.gillesbergerp.reviewrelay.ui.actions.ThreadFilterMenu"
+               popup="true"
+               text="Show"
+               description="Which comments the review pane lists"
+               icon="AllIcons.General.Filter"/>
+
+        <group id="ReviewRelay.GroupBy"
+               class="com.github.gillesbergerp.reviewrelay.ui.actions.GroupByMenu"
+               popup="true"
+               text="Group By"
+               description="What the comment list puts a heading between"
+               icon="AllIcons.Actions.GroupBy"/>
+
+        <action id="ReviewRelay.RequestReview"
+                class="com.github.gillesbergerp.reviewrelay.ui.actions.RequestReviewAction"
+                text="Request a Review"
+                description="Ask this review's agent to go over the changes and propose what it finds"
+                icon="AllIcons.Actions.IntentionBulb"/>
+
+        <action id="ReviewRelay.AgentAccess"
+                class="com.github.gillesbergerp.reviewrelay.ui.actions.AgentAccessAction"
+                text="Set Up Agent Access..."
+                description="Show the address an agent reads this review from, and how to point yours at it"
+                icon="AllIcons.General.Web"/>
+
+        <action id="ReviewRelay.Reconnect"
+                class="com.github.gillesbergerp.reviewrelay.ui.actions.ReconnectAction"
+                text="Reconnect"
+                description="Rediscover the agent and reload its sessions"
+                icon="AllIcons.Actions.Refresh"/>
+
+        <action id="ReviewRelay.PostToPullRequest"
+                class="com.github.gillesbergerp.reviewrelay.ui.actions.PostToPullRequestAction"
+                text="Post to the Pull Request"
+                description="Submit the open comments as one review on this branch's GitHub pull request"
+                icon="AllIcons.Vcs.Vendors.Github"/>
+
+        <action id="ReviewRelay.CopyReview"
+                class="com.github.gillesbergerp.reviewrelay.ui.actions.ExportToClipboardAction"
+                text="Copy Review"
+                description="Copy the unsent review comments as markdown to the clipboard"
+                icon="AllIcons.Actions.Copy">
+            <keyboard-shortcut keymap="$default" first-keystroke="ctrl shift alt E"/>
+        </action>
+
+        <action id="ReviewRelay.ClearClosed"
+                class="com.github.gillesbergerp.reviewrelay.ui.actions.ClearClosedCommentsAction"
+                text="Clear Closed Comments"
+                description="Remove the comments already resolved or marked won't fix"
+                icon="AllIcons.Actions.GC"/>
+
+        <action id="ReviewRelay.DiscardAll"
+                class="com.github.gillesbergerp.reviewrelay.ui.actions.DiscardAllCommentsAction"
+                text="Discard All Comments"
+                description="Delete every review comment and the summary, whatever their state"
+                icon="AllIcons.General.Reset"/>
+
+        <action id="ReviewRelay.AddFileComment"
+                class="com.github.gillesbergerp.reviewrelay.ui.actions.AddFileCommentAction"
+                text="Add File Comment..."
+                description="Add a review comment on this file">
+            <add-to-group group-id="ChangesViewPopupMenu" anchor="last"/>
+        </action>
+
+        <action id="ReviewRelay.AddLineComment"
+                class="com.github.gillesbergerp.reviewrelay.ui.actions.AddLineCommentFromEditorAction"
+                text="Add Review Comment Here..."
+                description="Add a review comment on the selected lines">
+            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+            <add-to-group group-id="Diff.EditorPopupMenu" anchor="last"/>
+            <keyboard-shortcut keymap="$default" first-keystroke="ctrl shift alt M"/>
+        </action>
+
+        <!-- What is under review and the agent it goes to. Anything acting on the comments is in
+             ReviewRelay.CommentToolbar, above the list it acts on. -->
+        <group id="ReviewRelay.ToolWindowToolbar">
+            <reference ref="ReviewRelay.LocalChanges"/>
+            <separator/>
+            <reference ref="ReviewRelay.RequestReview"/>
+            <reference ref="ReviewRelay.AbortAgent"/>
+            <reference ref="ReviewRelay.NewSession"/>
+            <reference ref="ReviewRelay.Reconnect"/>
+            <reference ref="ReviewRelay.AgentAccess"/>
+        </group>
+
+        <!-- Ordered by what a narrow pane keeps: the row collapses from the right, so the filter and
+             the two steps outlast the three that end a comment. -->
+        <group id="ReviewRelay.CommentToolbar">
+            <reference ref="ReviewRelay.ThreadFilter"/>
+            <reference ref="ReviewRelay.GroupBy"/>
+            <separator/>
+            <reference ref="ReviewRelay.PreviousComment"/>
+            <reference ref="ReviewRelay.NextComment"/>
+            <separator/>
+            <reference ref="ReviewRelay.PostToPullRequest"/>
+            <reference ref="ReviewRelay.CopyReview"/>
+            <reference ref="ReviewRelay.ClearClosed"/>
+            <reference ref="ReviewRelay.DiscardAll"/>
+        </group>
+    </actions>
+</idea-plugin>

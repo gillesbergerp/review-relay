@@ -1,0 +1,88 @@
+<component name="ReviewRelay">
+  <reviews>
+    <review>
+      <id>71bbd039-c955-4367-b312-54055e9e8440</id>
+      <name>Review</name>
+      <startedAgainst>in e8470d84</startedAgainst>
+      <createdAt>2026-09-06T17:53:20.049812Z</createdAt>
+      <summary>Look at the locking</summary>
+      <selection>e8470d8402a9fdbc9bdf3f04462d586f3f3e5fab,92c5653ffee1</selection>
+      <agentBackend>opencode</agentBackend>
+      <agentSession>ses_f8f48146effeiOPULsYi0SRKi6</agentSession>
+      <briefedSession>ses_f8f48146effeiOPULsYi0SRKi6</briefedSession>
+      <threads>
+        <thread>
+          <id>f9586286-1d5c-4826-8e3c-d070f6f27c56</id>
+          <type>CONSIDER</type>
+          <filePath>src/main/kotlin/Backend.kt</filePath>
+          <lineStart>70</lineStart>
+          <lineEnd>72</lineEnd>
+          <reviewedCode>private val runningLock = Any()</reviewedCode>
+          <sentBase>private val runningLock = Any()</sentBase>
+          <codeChanged>true</codeChanged>
+          <readAt>2026-09-06T18:02:00Z</readAt>
+          <messages>
+            <message>
+              <id>df9ea17c-533e-41ac-b20d-c202b8577d5d</id>
+              <text>Shouldn't this be per session?</text>
+              <writtenAt>2026-09-06T17:57:07.994409200Z</writtenAt>
+              <sentAt>2026-09-06T17:59:31.298772600Z</sentAt>
+            </message>
+            <message>
+              <id>b64a20fa-7f43-4aa1-8f91-5e20881f395e</id>
+              <author>AGENT</author>
+              <text>Keyed it by conversation.</text>
+              <writtenAt>2026-09-06T18:01:00Z</writtenAt>
+            </message>
+          </messages>
+          <deliveries>
+            <delivery>
+              <destination>github</destination>
+              <externalId>owner/repo#7</externalId>
+            </delivery>
+          </deliveries>
+        </thread>
+        <thread>
+          <id>10a83c7c-b099-4de8-85ed-3d15fa46403a</id>
+          <filePath>src/main/kotlin/Whole.kt</filePath>
+          <outcome>RESOLVED</outcome>
+          <messages>
+            <message>
+              <id>ef5966f4-f8a1-4027-aa01-1b330de7a4ad</id>
+              <text>Split this up.</text>
+              <writtenAt>2026-09-06T17:59:14.911752600Z</writtenAt>
+              <sentAt>2026-09-06T17:59:31.298772600Z</sentAt>
+            </message>
+          </messages>
+        </thread>
+      </threads>
+      <proposals>
+        <proposal>
+          <id>2a1f0c3e-7b44-4d21-9a55-6f0e1c2d3b4a</id>
+          <agent>claude</agent>
+          <type>QUESTION</type>
+          <filePath>src/main/kotlin/Backend.kt</filePath>
+          <lineStart>18</lineStart>
+          <text>Why is this per project?</text>
+          <reviewedCode>enum class BackendTask</reviewedCode>
+          <madeAt>2026-09-06T18:05:00Z</madeAt>
+        </proposal>
+        <proposal>
+          <id>3b2e1d4f-8c55-4e32-8b66-7a1f2d3e4c5b</id>
+          <filePath>src/main/kotlin/Old.kt</filePath>
+          <text>Park this for later.</text>
+          <madeAt>2026-09-06T18:06:00Z</madeAt>
+          <standing>DISMISSED</standing>
+        </proposal>
+      </proposals>
+    </review>
+    <review>
+      <id>abb44348-5e26-4d19-8979-c88a50e22c8d</id>
+      <name>Review2</name>
+      <createdAt>2026-09-06T08:56:52.186586900Z</createdAt>
+      <open>false</open>
+    </review>
+  </reviews>
+  <activeId>71bbd039-c955-4367-b312-54055e9e8440</activeId>
+  <publishedId>71bbd039-c955-4367-b312-54055e9e8440</publishedId>
+</component>

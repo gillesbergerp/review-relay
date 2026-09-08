@@ -1,0 +1,38 @@
+[
+  {
+    "id": "global",
+    "worktree": "/",
+    "time": {
+      "created": 1784651755928,
+      "updated": 1788664208144,
+      "initialized": 1784654740635
+    },
+    "sandboxes": []
+  },
+  {
+    "id": "b652423945e44fa03da33246a17a77551739d920",
+    "worktree": "C:\\work\\example-service",
+    "vcs": "git",
+    "time": {
+      "created": 1784656067667,
+      "updated": 1788572453265
+    },
+    "sandboxes": [
+      "C:\\work\\example-service-hotfix",
+      "C:\\work\\example-service\\.claude\\worktrees\\retry-backoff",
+      "C:\\work\\example-service\\.claude\\worktrees\\cache-eviction",
+      "C:\\work\\example-service-preview",
+      "C:\\work\\example-service\\.claude\\worktrees\\rename-helper"
+    ]
+  },
+  {
+    "id": "3f0a1c8de2b74905af631d0c7e5b2a4419c83d6f",
+    "worktree": "/home/dev/another-project",
+    "vcs": "git",
+    "time": {
+      "created": 1784660000000,
+      "updated": 1788580000000
+    },
+    "sandboxes": []
+  }
+]

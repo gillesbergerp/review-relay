@@ -1,0 +1,103 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Three systems, because the separator and the case rules differ between them and a test suite
+  # that only ever ran on one read as green while an agent's path matched no file on the other two.
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      # Not `build`: assemble boots a headless IDE to index searchable options, which needs the whole
+      # IDE distribution and is the check least likely to catch anything a compile and the tests miss.
+      # bash on all three: the Windows runner defaults to PowerShell, which cannot run the script.
+      - run: ./gradlew test compileKotlin --no-daemon
+        shell: bash
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: test-results-${{ matrix.os }}
+          path: build/reports/tests/test
+
+  # Its own job: it downloads an IDE per version it checks, which is minutes and gigabytes that a
+  # push does not need to spend.
+  verify:
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - run: ./gradlew buildPlugin verifyPlugin --no-daemon
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: review-relay
+          path: build/distributions/*.zip
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: verifier-report
+          path: build/reports/pluginVerifier
+
+  # Tags only, and never on a dispatch: a manual run is how the verifier gets exercised off a tag,
+  # and that must not be one keystroke away from a release nobody can recall.
+  publish:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [build, verify]
+    runs-on: ubuntu-latest
+    environment: marketplace
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      # Refuses a tag that names a version the build does not, which is the one way a release goes
+      # out under the wrong number.
+      - name: Check the tag matches the built version
+        run: |
+          built=$(./gradlew -q printVersion --no-daemon)
+          tagged=${GITHUB_REF_NAME#v}
+          if [ "$built" != "$tagged" ]; then
+            echo "tag $GITHUB_REF_NAME does not match project version $built"
+            exit 1
+          fi
+
+      - run: ./gradlew publishPlugin --no-daemon
+        env:
+          PUBLISH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
